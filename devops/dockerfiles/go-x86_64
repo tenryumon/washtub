@@ -1,0 +1,17 @@
+FROM debian:bullseye-20230227-slim
+
+WORKDIR /app
+
+ENV ENV envname
+ENV AWS_ACCESS_KEY_ID awsid
+ENV AWS_SECRET_ACCESS_KEY awssecret
+
+RUN apt update && \
+	apt install -y --no-install-recommends ca-certificates && \
+	apt install -y dnsutils
+
+COPY backend .
+COPY backend-envname.ini ./devops/configuration/
+COPY ./devops/notification/ ./devops/notification/
+
+ENTRYPOINT ["bash", "-c", "./backend"]

@@ -1,0 +1,6 @@
+authtoken: token
+version: "2"
+tunnels:
+    app_be:
+        proto: http
+        addr: proxy:30

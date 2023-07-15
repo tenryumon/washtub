@@ -1,0 +1,1 @@
+Berikut adalah kode verifikasi di sini: {{ .otp }}

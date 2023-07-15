@@ -1,0 +1,25 @@
+version: "3.1"
+name: "backend"
+services:
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: asdasd
+      MYSQL_DATABASE: dbname
+      MYSQL_USER: dbuser
+      # TZ: Asia/Jakarta
+    ports:
+      - 3306:3306
+    volumes:
+      - my-db:/var/lib/mysql
+      - ../sqlfiles:/docker-entrypoint-initdb.d
+  
+  redis:
+    image: "redis:alpine"
+    ports:
+      - 6379:6379
+
+volumes:
+  my-db:
+  prom_data:

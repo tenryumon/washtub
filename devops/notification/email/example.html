@@ -1,0 +1,16 @@
+<html>
+	<head>
+		<title>{{.title}}</title>
+	</head>
+	<body>
+		<h1>{{.subtitle}}</h1>
+		<table>
+			{{range .items}}
+			<tr>
+				<td>{{ .Address }}</td>
+				<td>{{ .Password }}</td>
+			</tr>
+			{{end}}
+		</table>
+	</body>
+</html>
