@@ -8,6 +8,9 @@ import (
 	"os/signal"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/nsqsink/washtub/internal/handlers"
+	"github.com/nsqsink/washtub/internal/repositories"
+	"github.com/nsqsink/washtub/internal/usecases"
 	"golang.org/x/exp/slog"
 )
 
@@ -38,8 +41,13 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
+	// Worker
+	workerRepo := repositories.NewWorkerRepository()
+	workerUsecase := usecases.NewWorkerUsecase(workerRepo)
+	handlers.NewWorkerHandler(r, workerUsecase)
+
 	srv := &http.Server{
-		Addr:    "9000",
+		Addr:    "0.0.0.0:9000",
 		Handler: r,
 	}
 
