@@ -2,33 +2,81 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/hashicorp/go-memdb"
 	"github.com/nsqsink/washtub/internal/models"
 )
 
-type workerRepo struct {
+type WorkerStore struct {
+	db     *memdb.MemDB
+	txn    *memdb.Txn
+	schema *memdb.TableSchema
 }
 
-func NewWorkerRepository() models.WorkerRepository {
-	return &workerRepo{}
+// Init New Worker WorkerStore from in-memory DB
+func NewWorkerStore(db *memdb.MemDB) models.WorkerStore {
+	return &WorkerStore{
+		db:     db,
+		txn:    db.Txn(false),
+		schema: models.WorkerSchema,
+	}
 }
 
-// Fetch implements models.WorkerRepository.
-func (*workerRepo) Fetch(ctx context.Context, request models.FetchRequest) (res []models.Worker, err error) {
+// Fetch to get all worker data from WorkerStore
+func (w *WorkerStore) Fetch(ctx context.Context, request models.FetchRequest) (res []models.Worker, err error) {
+	// Get all data
+	list, err := w.txn.Get(w.schema.Name, "id")
+	if err != nil {
+		return res, err
+	}
+
+	// Parse to object
+	for obj := list.Next(); obj != nil; obj = list.Next() {
+		res = append(res, obj.(models.Worker))
+	}
+
+	// Return data
+	return res, err
+}
+
+// GetByID to get data by worker id from WorkerStore.
+func (w *WorkerStore) GetByID(ctx context.Context, id string) (res models.Worker, err error) {
+	// Lookup by id
+	raw, err := w.txn.First("worker", "id", id)
+	if err != nil || raw == nil {
+		return res, err
+	}
+
+	// Parse to object
+	res, ok := raw.(models.Worker)
+	if !ok {
+		return res, fmt.Errorf("failed to parse data: %v", raw)
+	}
+
+	// Return data
+	return res, err
+}
+
+// Stash to clear worker data from WorkerStore.
+func (w *WorkerStore) Stash(ctx context.Context, worker models.Worker) error {
 	panic("unimplemented")
 }
 
-// GetByID implements models.WorkerRepository.
-func (*workerRepo) GetByID(ctx context.Context, id string) (models.Worker, error) {
-	panic("unimplemented")
-}
+// Store to insert worker data to WorkerStore.
+func (w *WorkerStore) Store(ctx context.Context, worker models.Worker) (models.Worker, error) {
+	// Create a write transaction
+	w.txn = w.db.Txn(true)
 
-// Stash implements models.WorkerRepository.
-func (*workerRepo) Stash(ctx context.Context, worker models.Worker) error {
-	panic("unimplemented")
-}
+	// Insert worker
+	err := w.txn.Insert(w.schema.Name, worker)
 
-// Store implements models.WorkerRepository.
-func (*workerRepo) Store(ctx context.Context, worker models.Worker) (err error) {
-	return
+	// Commit the transaction
+	w.txn.Commit()
+
+	// Create read-only transaction
+	w.txn = w.db.Txn(false)
+	defer w.txn.Abort()
+
+	return worker, err
 }
