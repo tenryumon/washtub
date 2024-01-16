@@ -59,17 +59,17 @@ func (w *MessageStore) GetByID(ctx context.Context, id string) (res models.Messa
 }
 
 // Stash implements models.MessageStore.
-func (w *MessageStore) Stash(ctx context.Context, worker models.Message) error {
+func (w *MessageStore) Stash(ctx context.Context, message models.Message) error {
 	panic("unimplemented")
 }
 
 // Store implements models.MessageStore.
-func (w *MessageStore) Store(ctx context.Context, worker models.Message) error {
+func (w *MessageStore) Store(ctx context.Context, message models.Message) (models.Message, error) {
 	// Create a write transaction
 	w.txn = w.db.Txn(true)
 
 	// Insert worker
-	err := w.txn.Insert(w.schema.Name, worker)
+	err := w.txn.Insert(w.schema.Name, message)
 
 	// Commit the transaction
 	w.txn.Commit()
@@ -78,5 +78,5 @@ func (w *MessageStore) Store(ctx context.Context, worker models.Message) error {
 	w.txn = w.db.Txn(false)
 	defer w.txn.Abort()
 
-	return err
+	return message, err
 }

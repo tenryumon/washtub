@@ -32,7 +32,10 @@ func (w *MessageUsecase) GetByID(ctx context.Context, id string) (res models.Mes
 }
 
 // Pulse implements models.MessageUsecase.
-func (w *MessageUsecase) Store(ctx context.Context, message models.Message) (err error) {
-	err = w.MessageStore.Store(ctx, message)
+func (w *MessageUsecase) Store(ctx context.Context, message models.Message) (msg models.Message, err error) {
+	// SetID before process
+	message.SetID()
+
+	msg, err = w.MessageStore.Store(ctx, message)
 	return
 }

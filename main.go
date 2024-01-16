@@ -44,7 +44,8 @@ func main() {
 
 	// In Memory DB
 	err, memDB := inmemdb.InitDB(map[string]*memdb.TableSchema{
-		"worker": models.WorkerSchema,
+		"worker":  models.WorkerSchema,
+		"message": models.MessageSchema,
 	})
 	if err != nil {
 		slog.Error("Failed to Init Memory DB", err)
@@ -66,7 +67,12 @@ func initHandler(hub *sock.Hub, memDB *memdb.MemDB, router chi.Router) {
 	// Worker
 	workerStore := repositories.NewWorkerStore(memDB)
 	workerUsecase := usecases.NewWorkerUsecase(workerStore, hub)
-	handlers.NewWorkerHandler(router, workerUsecase)
+
+	// Message
+	messageStore := repositories.NewMessageStore(memDB)
+	messageUsecase := usecases.NewMessageUsecase(messageStore)
+
+	handlers.NewWorkerHandler(router, workerUsecase, messageUsecase)
 }
 
 func initServer(handler http.Handler) {
