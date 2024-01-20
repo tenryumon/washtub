@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/nsqsink/washtub/internal/models"
-	httpResp "github.com/nsqsink/washtub/pkg/http"
+	httpLib "github.com/nsqsink/washtub/pkg/http"
 )
 
 type (
@@ -40,8 +40,9 @@ func NewWorkerHandler(r chi.Router, workerUsecase models.WorkerUsecase, messageU
 
 	r.Route("/worker", func(r chi.Router) {
 		r.Post("/pulse", handler.Pulse)
-		r.Get("/fetch", handler.Fetch)
 		r.Post("/message", handler.Message)
+		r.Get("/fetch", handler.Fetch)
+		r.Get("/{workerID}", handler.FetchMessages)
 	})
 }
 
@@ -69,30 +70,21 @@ func (h *WorkerHandler) Pulse(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Write response
-	renderer := httpResp.BuildResponseHTTP(worker, err)
+	renderer := httpLib.BuildResponseHTTP(worker, err)
 	render.Render(w, r, &renderer)
 }
 
 func (h *WorkerHandler) Fetch(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var (
-		request models.FetchRequest
-		workers []models.Worker
-	)
-
-	// Get Request Body
-	err := json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	// Get Request Param
+	request := httpLib.BuildFetchRequest(r)
 
 	// Call Usecase
-	workers, err = h.WorkerUsecase.Fetch(ctx, request)
+	workers, err := h.WorkerUsecase.Fetch(ctx, request)
 
 	// Write response
-	renderer := httpResp.BuildResponseHTTP(workers, err)
+	renderer := httpLib.BuildResponseHTTP(workers, err)
 	render.Render(w, r, &renderer)
 }
 
@@ -130,6 +122,21 @@ func (h *WorkerHandler) Message(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Write response
-	renderer := httpResp.BuildResponseHTTP(message, err)
+	renderer := httpLib.BuildResponseHTTP(message, err)
+	render.Render(w, r, &renderer)
+}
+
+func (h *WorkerHandler) FetchMessages(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Get Request Param
+	request := httpLib.BuildFetchRequest(r)
+	workerID := chi.URLParam(r, "workerID")
+
+	// Call Usecase
+	messages, err := h.MessageUsecase.Fetch(ctx, request, workerID)
+
+	// Write response
+	renderer := httpLib.BuildResponseHTTP(messages, err)
 	render.Render(w, r, &renderer)
 }

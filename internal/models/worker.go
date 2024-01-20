@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-memdb"
+	httpLib "github.com/nsqsink/washtub/pkg/http"
 )
 
 type (
@@ -22,12 +23,12 @@ type (
 	}
 	WorkerUsecase interface {
 		Pulse(ctx context.Context, worker Worker) (Worker, error)
-		Fetch(ctx context.Context, request FetchRequest) ([]Worker, error)
+		Fetch(ctx context.Context, request httpLib.FetchRequest) ([]Worker, error)
 		GetByID(ctx context.Context, id string) (Worker, error)
 	}
 	WorkerStore interface {
 		Store(ctx context.Context, worker Worker) (Worker, error)
-		Fetch(ctx context.Context, request FetchRequest) (res []Worker, err error)
+		Fetch(ctx context.Context, request httpLib.FetchRequest) (res []Worker, err error)
 		GetByID(ctx context.Context, id string) (Worker, error)
 		Stash(ctx context.Context, worker Worker) error
 	}

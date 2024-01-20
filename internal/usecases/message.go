@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/nsqsink/washtub/internal/models"
+	httpLib "github.com/nsqsink/washtub/pkg/http"
 )
 
 type MessageUsecase struct {
@@ -17,7 +18,7 @@ func NewMessageUsecase(store models.MessageStore) models.MessageUsecase {
 }
 
 // Fetch implements models.MessageUsecase.
-func (w *MessageUsecase) Fetch(ctx context.Context, request models.FetchRequest, workerID string) (res []models.Message, err error) {
+func (w *MessageUsecase) Fetch(ctx context.Context, request httpLib.FetchRequest, workerID string) (res []models.Message, err error) {
 	res, err = w.MessageStore.Fetch(ctx, request, workerID)
 	if err != nil {
 		return nil, err

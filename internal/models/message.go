@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-memdb"
+	httpLib "github.com/nsqsink/washtub/pkg/http"
 )
 
 type (
@@ -20,12 +21,12 @@ type (
 	}
 	MessageUsecase interface {
 		Store(ctx context.Context, message Message) (Message, error)
-		Fetch(ctx context.Context, request FetchRequest, workerId string) ([]Message, error)
+		Fetch(ctx context.Context, request httpLib.FetchRequest, workerId string) ([]Message, error)
 		GetByID(ctx context.Context, id string) (Message, error)
 	}
 	MessageStore interface {
 		Store(ctx context.Context, message Message) (Message, error)
-		Fetch(ctx context.Context, request FetchRequest, workerId string) (res []Message, err error)
+		Fetch(ctx context.Context, request httpLib.FetchRequest, workerId string) (res []Message, err error)
 		GetByID(ctx context.Context, id string) (Message, error)
 		Stash(ctx context.Context, message Message) error
 	}

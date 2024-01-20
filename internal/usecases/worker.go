@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/nsqsink/washtub/internal/models"
+	httpLib "github.com/nsqsink/washtub/pkg/http"
 	"github.com/nsqsink/washtub/pkg/sock"
 )
 
@@ -22,7 +23,7 @@ func NewWorkerUsecase(store models.WorkerStore, hub *sock.Hub) models.WorkerUsec
 }
 
 // Fetch implements models.WorkerUsecase.
-func (w *WorkerUsecase) Fetch(ctx context.Context, request models.FetchRequest) (res []models.Worker, err error) {
+func (w *WorkerUsecase) Fetch(ctx context.Context, request httpLib.FetchRequest) (res []models.Worker, err error) {
 	res, err = w.WorkerStore.Fetch(ctx, request)
 	if err != nil {
 		return nil, err
