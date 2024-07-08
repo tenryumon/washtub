@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/go-memdb"
 	"github.com/nsqsink/washtub/internal/models"
+	httpLib "github.com/nsqsink/washtub/pkg/http"
 )
 
 type WorkerStore struct {
@@ -24,7 +25,7 @@ func NewWorkerStore(db *memdb.MemDB) models.WorkerStore {
 }
 
 // Fetch to get all worker data from WorkerStore
-func (w *WorkerStore) Fetch(ctx context.Context, request models.FetchRequest) (res []models.Worker, err error) {
+func (w *WorkerStore) Fetch(ctx context.Context, request httpLib.FetchRequest) (res []models.Worker, err error) {
 	// Get all data
 	list, err := w.txn.Get(w.schema.Name, "id")
 	if err != nil {

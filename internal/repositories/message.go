@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/go-memdb"
 	"github.com/nsqsink/washtub/internal/models"
+	httpLib "github.com/nsqsink/washtub/pkg/http"
 )
 
 type MessageStore struct {
@@ -23,7 +24,7 @@ func NewMessageStore(db *memdb.MemDB) models.MessageStore {
 }
 
 // Fetch implements models.MessageStore.
-func (w *MessageStore) Fetch(ctx context.Context, request models.FetchRequest, workerID string) (res []models.Message, err error) {
+func (w *MessageStore) Fetch(ctx context.Context, request httpLib.FetchRequest, workerID string) (res []models.Message, err error) {
 	// Get all data
 	list, err := w.txn.Get(w.schema.Name, "workerid", workerID)
 	if err != nil {
@@ -59,17 +60,17 @@ func (w *MessageStore) GetByID(ctx context.Context, id string) (res models.Messa
 }
 
 // Stash implements models.MessageStore.
-func (w *MessageStore) Stash(ctx context.Context, worker models.Message) error {
+func (w *MessageStore) Stash(ctx context.Context, message models.Message) error {
 	panic("unimplemented")
 }
 
 // Store implements models.MessageStore.
-func (w *MessageStore) Store(ctx context.Context, worker models.Message) error {
+func (w *MessageStore) Store(ctx context.Context, message models.Message) (models.Message, error) {
 	// Create a write transaction
 	w.txn = w.db.Txn(true)
 
 	// Insert worker
-	err := w.txn.Insert(w.schema.Name, worker)
+	err := w.txn.Insert(w.schema.Name, message)
 
 	// Commit the transaction
 	w.txn.Commit()
@@ -78,5 +79,5 @@ func (w *MessageStore) Store(ctx context.Context, worker models.Message) error {
 	w.txn = w.db.Txn(false)
 	defer w.txn.Abort()
 
-	return err
+	return message, err
 }
