@@ -7,12 +7,9 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/hashicorp/go-memdb"
-	"github.com/nsqsink/washtub/internal/handlers"
 	"github.com/nsqsink/washtub/internal/models"
-	"github.com/nsqsink/washtub/internal/repositories"
-	"github.com/nsqsink/washtub/internal/usecases"
+	"github.com/nsqsink/washtub/internal/server"
 	"github.com/nsqsink/washtub/pkg/inmemdb"
 	"github.com/nsqsink/washtub/pkg/sock"
 	"golang.org/x/exp/slog"
@@ -51,35 +48,12 @@ func main() {
 		slog.Error("Failed to Init Memory DB", err)
 	}
 
-	// Router
-	router := chi.NewRouter()
-	initHandler(hub, memDB, router)
-
 	// Server
-	initServer(router)
+	initServer(memDB, hub)
 }
 
-func initHandler(hub *sock.Hub, memDB *memdb.MemDB, router chi.Router) {
-	// Healthcheck
-	handlers.NewHealthcheckHandler(router)
-	// Socket
-	handlers.NewSocketHandler(router, hub)
-	// Worker
-	workerStore := repositories.NewWorkerStore(memDB)
-	workerUsecase := usecases.NewWorkerUsecase(workerStore, hub)
-
-	// Message
-	messageStore := repositories.NewMessageStore(memDB)
-	messageUsecase := usecases.NewMessageUsecase(messageStore)
-
-	handlers.NewWorkerHandler(router, workerUsecase, messageUsecase)
-}
-
-func initServer(handler http.Handler) {
-	srv := &http.Server{
-		Addr:    "0.0.0.0:9000",
-		Handler: handler,
-	}
+func initServer(memDB *memdb.MemDB, hub *sock.Hub) {
+	srv := server.NewServer(9000, memDB, hub)
 
 	idleConnsClosed := make(chan struct{})
 	go func() {

@@ -32,18 +32,11 @@ type (
 	}
 )
 
-func NewWorkerHandler(r chi.Router, workerUsecase models.WorkerUsecase, messageUsecase models.MessageUsecase) {
-	handler := &WorkerHandler{
+func NewWorkerHandler(workerUsecase models.WorkerUsecase, messageUsecase models.MessageUsecase) *WorkerHandler {
+	return &WorkerHandler{
 		WorkerUsecase:  workerUsecase,
 		MessageUsecase: messageUsecase,
 	}
-
-	r.Route("/worker", func(r chi.Router) {
-		r.Post("/pulse", handler.Pulse)
-		r.Post("/message", handler.Message)
-		r.Get("/fetch", handler.Fetch)
-		r.Get("/{workerID}", handler.FetchMessages)
-	})
 }
 
 func (h *WorkerHandler) Pulse(w http.ResponseWriter, r *http.Request) {
